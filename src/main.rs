@@ -75,7 +75,8 @@ async fn main() {
             config.save(&config_path).unwrap();
         }
 
-        Commands::ListClasses { username, password } => {
+        Commands::ListClasses { username, password, id_only } => {
+
             let username = if let Some(username) = username.as_deref().or_else(|| config.username())
             {
                 username
@@ -93,13 +94,16 @@ async fn main() {
 
             if let Err(e) = arkaive::auth::auth(username, password, &mut client).await {
                 eprintln!("Authentication failed: {:?}", e);
-            } else {
-                println!("Authentication is successful",);
-            }
+            } 
 
             match arkaive::utils::list_classes(&mut client).await {
                 Ok(data) => {
-                    data.into_iter().for_each(|x| std::println!("{}", x));
+                    if id_only {
+                        data.into_iter().for_each(|x| std::println!("{}", x.url.id()));
+                    }
+                    else {
+                        data.into_iter().for_each(|x| std::println!("{}", x));
+                    }
                 }
                 Err(e) => eprintln!("Authentication failed: {:?}", e),
             }

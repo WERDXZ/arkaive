@@ -65,6 +65,9 @@ pub enum Commands {
         username: Option<String>,
         #[clap(short, long)]
         password: Option<String>,
+
+        #[clap(short, long("id-only"))]
+        id_only: bool,
     },
 
     Checkin {

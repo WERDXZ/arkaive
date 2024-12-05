@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use clap_complete::Shell;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -77,4 +78,9 @@ pub enum Commands {
         #[clap(short, long)]
         password: Option<String>,
     },
+
+    GenerateCompletions {
+        #[arg(long = "shell", value_enum)]
+        shell: Shell,
+    }
 }

@@ -1,7 +1,17 @@
+use clap::Command;
+use clap_complete::generate;
+use std::io;
+use clap_complete::Generator;
+use clap::CommandFactory;
 use arkaive::config::Config;
 use arkaive::config::{Cli, Commands};
 use clap::Parser;
 use reqwest::redirect::Policy;
+
+
+fn print_completions<G: Generator>(gen: G, cmd: &mut Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+}
 
 #[tokio::main]
 async fn main() {
@@ -75,8 +85,11 @@ async fn main() {
             config.save(&config_path).unwrap();
         }
 
-        Commands::ListClasses { username, password, id_only } => {
-
+        Commands::ListClasses {
+            username,
+            password,
+            id_only,
+        } => {
             let username = if let Some(username) = username.as_deref().or_else(|| config.username())
             {
                 username
@@ -94,14 +107,14 @@ async fn main() {
 
             if let Err(e) = arkaive::auth::auth(username, password, &mut client).await {
                 eprintln!("Authentication failed: {:?}", e);
-            } 
+            }
 
             match arkaive::utils::list_classes(&mut client).await {
                 Ok(data) => {
                     if id_only {
-                        data.into_iter().for_each(|x| std::println!("{}", x.url.id()));
-                    }
-                    else {
+                        data.into_iter()
+                            .for_each(|x| std::println!("{}", x.url.id()));
+                    } else {
                         data.into_iter().for_each(|x| std::println!("{}", x));
                     }
                 }
@@ -133,8 +146,8 @@ async fn main() {
 
             if let Err(e) = arkaive::auth::auth(username, password, &mut client).await {
                 eprintln!("Authentication failed: {:?}", e);
-                return ;
-            } 
+                return;
+            }
 
             match arkaive::utils::checkin(class, &mut client).await {
                 Ok(data) => {
@@ -144,6 +157,14 @@ async fn main() {
             }
 
             config.save(&config_path).unwrap();
+        }
+
+        Commands::GenerateCompletions {
+            shell
+        } => {
+            let mut cmd = Cli::command();
+            eprintln!("Generating completion file for {shell:?}...");
+            print_completions(shell, &mut cmd);
         }
     }
 }
